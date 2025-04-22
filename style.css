@@ -1,0 +1,62 @@
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+:root {
+    --theme-bg: #0f0f0f;
+    --theme-bg-foreground: #f0f0f0;
+    --theme-overlay: rgba(0, 0, 0, 0.7);
+    --theme-modal-bg: #1f1f1f;
+    --theme-modal-border: #3f3f3f;
+    --theme-accent: #ff0000;
+}
+
+.dark {
+    --theme-bg: #f0f0f0;
+    --theme-bg-foreground: #0f0f0f;
+    --theme-overlay: rgba(255, 255, 255, 0.7);
+    --theme-modal-bg: #e0e0e0;
+    --theme-modal-border: #c0c0c0;
+    --theme-accent: #cc0000;
+}
+
+html,
+body {
+    width: 100dvw;
+    height: 100dvh;
+    overflow: hidden;
+    position: relative;
+    background-color: var(--theme-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.text {
+    font-family: sans-serif;
+    color: var(--theme-bg-foreground);
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid var(--theme-bg-foreground);
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+    position: fixed;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

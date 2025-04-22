@@ -12,26 +12,29 @@ const proxies = [
 ];
 
 /**
- * Get the liveId of a youtube channel
- * @param {string} handle - The handle of the channel
- * @returns {Promise<{ liveId: string }>} - The liveId of the channel
+ * Get the live ID of the user
+ * @param {string} handle - The YouTube handle of the user
+ * @param {number} index - The index of the proxy to use
+ * @return {Promise<string|null>} - The live ID of the user (or null if not found)
  */
-async function getLiveId(handle, index = 0) {
+const getLiveId = async (handle, index = 0) => {
     try {
-        if (index >= proxies.length) return { liveId: null };
-        const html = await fetch(
+        if (index >= proxies.length) return null;
+        const response = await fetch(
             `${proxies[index]}${encodeURIComponent(
                 `https://www.youtube.com/${handle}/live`
             )}`
-        ).then(async (v) => {
-            const contentType = v.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                const json = await v.json();
-                return json.contents;
-            } else {
-                return v.text();
-            }
-        });
+        );
+
+        const contentType = response.headers.get("content-type");
+        let html;
+
+        if (contentType && contentType.includes("application/json")) {
+            const json = await response.json();
+            html = json.contents;
+        } else {
+            html = await response.text();
+        }
 
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
@@ -41,56 +44,44 @@ async function getLiveId(handle, index = 0) {
         const videoIdMatch = url.match(/v=([^&]+)/);
 
         if (!videoIdMatch?.[1]) {
-            throw new Error("No video id found");
+            throw new Error(`No video ID found for ${handle}`);
         }
 
-        return { liveId: videoIdMatch[1] };
+        return videoIdMatch[1];
     } catch (error) {
         return getLiveId(handle, index + 1);
     }
-}
+};
 
 /**
  * Setup the chat iframe
  */
-async function setupChat() {
-    const { liveId } = await getLiveId(user);
+const setupChat = async () => {
+    const liveId = await getLiveId(user);
     if (!liveId) return false;
 
     const url = `https://www.youtube.com/live_chat?v=${liveId}&is_popout=1`;
     window.location.href = url;
-}
+};
 
-/**
- * Setup the no user template
- */
-function setupNoUser() {
-    const noUserTemplate = document.getElementById("no-user-template");
-    if (!noUserTemplate) return;
-    document.body.appendChild(noUserTemplate.content.cloneNode(true));
-}
+const userMessage = (templateName) => {
+    const template = document.getElementById(templateName);
+    const templateContent = template.content.cloneNode(true);
+    document.body.appendChild(templateContent);
 
-/**
- * Setup the no live template
- */
-function setupNoLive() {
-    const noLiveTemplate = document.getElementById("no-live-template");
-    if (!noLiveTemplate) return;
-    document.body.appendChild(noLiveTemplate.content.cloneNode(true));
-}
+    document.querySelector(".spinner").remove();
+};
 
-async function setup() {
+const main = async () => {
     if (!user) {
-        setupNoUser();
-        document.querySelector(".spinner").remove();
+        userMessage("no-user-template");
         return;
     }
 
     const success = await setupChat();
     if (!success) {
-        setupNoLive();
-        document.querySelector(".spinner").remove();
+        userMessage("no-live-template");
     }
-}
+};
 
-setup();
+main();
