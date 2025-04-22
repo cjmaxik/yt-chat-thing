@@ -1,448 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="https://www.youtube.com/s/desktop/711fd789/img/logos/favicon_32x32.png" sizes="32x32">
-    <title>Youtube Chat Thing</title>
-  </head>
+    <title>Youtube Live Chat Redirect</title>
+</head>
 
-  <style>
+<style>
     * {
-      box-sizing: border-box;
-      padding: 0;
-      margin: 0;
+        box-sizing: border-box;
+        padding: 0;
+        margin: 0;
     }
 
     :root {
-      --theme-bg: #0f0f0f;
-      --theme-bg-foreground: #f0f0f0;
-      --theme-overlay: rgba(0, 0, 0, 0.7);
-      --theme-modal-bg: #1f1f1f;
-      --theme-modal-border: #3f3f3f;
-      --theme-accent: #ff0000;
+        --theme-bg: #0f0f0f;
+        --theme-bg-foreground: #f0f0f0;
+        --theme-overlay: rgba(0, 0, 0, 0.7);
+        --theme-modal-bg: #1f1f1f;
+        --theme-modal-border: #3f3f3f;
+        --theme-accent: #ff0000;
     }
 
     .dark {
-      --theme-bg: #f0f0f0;
-      --theme-bg-foreground: #0f0f0f;
-      --theme-overlay: rgba(255, 255, 255, 0.7);
-      --theme-modal-bg: #e0e0e0;
-      --theme-modal-border: #c0c0c0;
-      --theme-accent: #cc0000;
+        --theme-bg: #f0f0f0;
+        --theme-bg-foreground: #0f0f0f;
+        --theme-overlay: rgba(255, 255, 255, 0.7);
+        --theme-modal-bg: #e0e0e0;
+        --theme-modal-border: #c0c0c0;
+        --theme-accent: #cc0000;
     }
 
     html,
     body {
-      width: 100dvw;
-      height: 100dvh;
-      overflow: hidden;
-      position: relative;
-      background-color: var(--theme-bg);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+        width: 100dvw;
+        height: 100dvh;
+        overflow: hidden;
+        position: relative;
+        background-color: var(--theme-bg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .chat-iframe {
-      width: 100dvw;
-      height: 100dvh;
-      border: none;
+        width: 100dvw;
+        height: 100dvh;
+        border: none;
     }
 
     .text {
-      font-family: sans-serif;
-      color: var(--theme-bg-foreground);
+        font-family: sans-serif;
+        color: var(--theme-bg-foreground);
     }
 
     .icons-bar {
-      position: absolute;
-      top: 0;
-      right: 50px;
-      height: 48px;
-      display: flex;
-      gap: 8px;
-      align-items: center;
+        position: absolute;
+        top: 0;
+        right: 50px;
+        height: 48px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
     }
 
-    .spinner + .icons-bar {
-      display: none;
+    .spinner+.icons-bar {
+        display: none;
     }
 
     .icons-bar a {
-      display: flex;
+        display: flex;
     }
 
     .icons-bar button {
-      background-color: transparent;
-      border: none;
+        background-color: transparent;
+        border: none;
     }
 
     .icons-bar svg {
-      width: 32px;
-      height: 32px;
-      color: var(--theme-bg-foreground);
+        width: 32px;
+        height: 32px;
+        color: var(--theme-bg-foreground);
     }
 
     .spinner {
-      width: 48px;
-      height: 48px;
-      border: 5px solid var(--theme-bg-foreground);
-      border-bottom-color: transparent;
-      border-radius: 50%;
-      display: inline-block;
-      box-sizing: border-box;
-      animation: rotation 1s linear infinite;
-      position: fixed;
+        width: 48px;
+        height: 48px;
+        border: 5px solid var(--theme-bg-foreground);
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        display: inline-block;
+        box-sizing: border-box;
+        animation: rotation 1s linear infinite;
+        position: fixed;
     }
 
     @keyframes rotation {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(360deg);
-      }
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     /* Modal styles */
     .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: var(--theme-overlay);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--theme-overlay);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
     }
 
     .modal {
-      background-color: var(--theme-modal-bg);
-      border-radius: 8px;
-      border: 1px solid var(--theme-modal-border);
-      padding: 24px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        background-color: var(--theme-modal-bg);
+        border-radius: 8px;
+        border: 1px solid var(--theme-modal-border);
+        padding: 24px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     .modal-content {
-      margin-bottom: 20px;
-      color: var(--theme-bg-foreground);
-      line-height: 1.5;
+        margin-bottom: 20px;
+        color: var(--theme-bg-foreground);
+        line-height: 1.5;
     }
 
     .modal-content p {
-      margin-bottom: 12px;
+        margin-bottom: 12px;
     }
 
     .modal-content ol {
-      margin-left: 24px;
-      margin-bottom: 12px;
+        margin-left: 24px;
+        margin-bottom: 12px;
     }
 
     .modal-content li {
-      margin-bottom: 8px;
+        margin-bottom: 8px;
     }
 
     .modal-content img {
-      max-width: 100%;
-      border-radius: 4px;
-      margin: 8px 0;
+        max-width: 100%;
+        border-radius: 4px;
+        margin: 8px 0;
     }
 
     .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
     }
 
     .modal-button {
-      padding: 8px 16px;
-      border-radius: 4px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.2s;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
     }
 
     .primary-button {
-      background-color: var(--theme-accent);
-      color: white;
-      border: none;
+        background-color: var(--theme-accent);
+        color: white;
+        border: none;
     }
 
     .primary-button:hover {
-      background-color: #cc0000;
+        background-color: #cc0000;
     }
 
     .secondary-button {
-      background-color: transparent;
-      color: var(--theme-bg-foreground);
-      border: 1px solid var(--theme-modal-border);
+        background-color: transparent;
+        color: var(--theme-bg-foreground);
+        border: 1px solid var(--theme-modal-border);
     }
 
     .secondary-button:hover {
-      background-color: rgba(128, 128, 128, 0.1);
+        background-color: rgba(128, 128, 128, 0.1);
     }
-  </style>
+</style>
 
-  <body>
+<body>
     <span class="spinner"></span>
 
-    <div class="icons-bar">
-      <a href="https://github.com/gsporto/youtube-chat-thing" target="_blank">
-        <svg aria-hidden="true" viewBox="0 0 16 16" fill="currentColor">
-          <path
-            d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"
-          />
-        </svg>
-      </a>
-
-      <button onclick="handleThemeChange()">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="2 2 44 44"
-          fill="currentColor"
-        >
-          <g id="Layer_2" data-name="Layer 2">
-            <g id="Icons">
-              <g>
-                <rect width="48" height="48" fill="none"></rect>
-                <g>
-                  <path
-                    d="M14,24A10,10,0,0,0,24,34V14A10,10,0,0,0,14,24Z"
-                  ></path>
-                  <path
-                    d="M24,2A22,22,0,1,0,46,24,21.9,21.9,0,0,0,24,2ZM6,24A18.1,18.1,0,0,1,24,6v8a10,10,0,0,1,0,20v8A18.1,18.1,0,0,1,6,24Z"
-                  ></path>
-                </g>
-              </g>
-            </g>
-          </g>
-        </svg>
-      </button>
-
-      <button id="firefox-help-button" onclick="showFirefoxModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h2v2h-2v-2zm0-10h2v8h-2V7z"/>
-        </svg>
-      </button>
-    </div>
-
-    <template id="iframe-template">
-      <iframe
-        frameborder="0"
-        class="chat-iframe"
-        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-      ></iframe>
-    </template>
-
     <template id="no-user-template">
-      <h1 class="text">No user provided</h1>
+        <h1 class="text">No user provided</h1>
     </template>
 
     <template id="no-live-template">
-      <h1 class="text">No Live Found</h1>
+        <h1 class="text">No Live Found</h1>
     </template>
 
-    <template id="firefox-modal-template">
-      <div class="modal-overlay">
-        <div class="modal">
-          <div class="modal-content text">
-            <p>To get the best experience with this app on Firefox, a small settings adjustment is recommended:</p>
-            <ol>
-              <li>Click the shield icon in the address bar</li>
-              <li>Toggle "Enhanced Tracking Protection" to OFF for this site</li>
-              <li>Refresh the page</li>
-            </ol>
-            <p>This helps the app connect properly with YouTube while keeping your protection active on all other sites.</p>
-            <p>You can also ignore this suggestion and continue using the app as is - it should still work in most cases.</p>
-          </div>
-          <div class="modal-actions">
-            <button class="modal-button secondary-button" onclick="dismissFirefoxModal(false)">Don't show again</button>
-            <button class="modal-button primary-button" onclick="dismissFirefoxModal(true)">Got it</button>
-          </div>
-        </div>
-      </div>
-    </template>
+    <script src="index.js"></script>
+</body>
 
-    <script>
-      const hostname = window.location.hostname;
-      const theme = localStorage.getItem("theme") || "dark";
-      const user = window.location.pathname.split("/")[1];
-      const proxies = [
-        "https://corsproxy.io/?",
-        "https://api.codetabs.com/v1/proxy/?quest=",
-        "https://api.allorigins.win/get?url=",
-      ];
-
-      // Firefox detection and modal handling
-      const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-      const firefoxModalShown = localStorage.getItem("firefoxModalShown") === "true";
-      const firefoxHelpButton = document.getElementById("firefox-help-button");
-
-      // Hide Firefox help button if not using Firefox
-      if (!isFirefox) {
-        firefoxHelpButton.style.display = "none";
-      }
-
-      /**
-       * Show the Firefox warning modal
-       */
-      function showFirefoxModal() {
-        const modalTemplate = document.getElementById("firefox-modal-template");
-        if (!modalTemplate) return;
-        
-        // Remove any existing modal first
-        const existingModal = document.querySelector(".modal-overlay");
-        if (existingModal) {
-          existingModal.remove();
-        }
-        
-        const clone = modalTemplate.content.cloneNode(true);
-        document.body.appendChild(clone);
-      }
-
-      /**
-       * Dismiss the Firefox warning modal
-       * @param {boolean} showAgain - Whether to show the modal again in the future
-       */
-      function dismissFirefoxModal(showAgain) {
-        const modal = document.querySelector(".modal-overlay");
-        if (modal) {
-          modal.remove();
-        }
-        
-        if (!showAgain) {
-          localStorage.setItem("firefoxModalShown", "true");
-        }
-      }
-
-      /**
-       * Get the liveId of a youtube channel
-       * @param {string} handle - The handle of the channel
-       * @returns {Promise<{ liveId: string }>} - The liveId of the channel
-       */
-      async function getLiveId(handle, index = 0) {
-        try {
-          if (index >= proxies.length) return { liveId: null };
-          const html = await fetch(
-            `${proxies[index]}${encodeURIComponent(
-              `https://www.youtube.com/${handle}/live`
-            )}`
-          ).then(async (v) => {
-            const contentType = v.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-              const json = await v.json();
-              return json.contents;
-            } else {
-              return v.text();
-            }
-          });
-
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, "text/html");
-
-          const linkElement = doc.querySelector('link[rel="canonical"]');
-          const url = linkElement.getAttribute("href");
-          const videoIdMatch = url.match(/v=([^&]+)/);
-
-          if (!videoIdMatch?.[1]) {
-            throw new Error("No video id found");
-          }
-
-          return { liveId: videoIdMatch[1] };
-        } catch (error) {
-          return getLiveId(handle, index + 1);
-        }
-      }
-
-      function handleThemeChange() {
-        const currentTheme = localStorage.getItem("theme") || "dark";
-
-        const iframe = document.querySelector("iframe");
-        if (iframe) {
-          iframe.src =
-            currentTheme === "dark"
-              ? iframe.src.replace("dark", "light")
-              : iframe.src.replace("light", "dark");
-        }
-
-        document.body.classList.toggle("dark");
-
-        localStorage.setItem(
-          "theme",
-          currentTheme === "dark" ? "light" : "dark"
-        );
-      }
-
-      /**
-       * Setup the chat iframe
-       */
-      async function setupChat() {
-        const { liveId } = await getLiveId(user);
-        if (!liveId) return false;
-        const url = `https://www.youtube.com/live_chat?v=${liveId}&is_popout=1&embed_domain=${hostname}&theme=${theme}`;
-
-        const iframeTemplate = document.getElementById("iframe-template");
-        if (!iframeTemplate) return;
-        /** @type {DocumentFragment} */
-        const clone = iframeTemplate.content.cloneNode(true);
-        const iframe = clone.querySelector("iframe");
-        iframe.src = url;
-
-        document.body.appendChild(clone);
-
-        return true;
-      }
-
-      /**
-       * Setup the no user template
-       */
-      function setupNoUser() {
-        const noUserTemplate = document.getElementById("no-user-template");
-        if (!noUserTemplate) return;
-        document.body.appendChild(noUserTemplate.content.cloneNode(true));
-      }
-
-      /**
-       * Setup the no live template
-       */
-      function setupNoLive() {
-        const noLiveTemplate = document.getElementById("no-live-template");
-        if (!noLiveTemplate) return;
-        document.body.appendChild(noLiveTemplate.content.cloneNode(true));
-      }
-
-      async function setup() {
-        document.body.classList.toggle("dark", theme !== "dark");
-        
-        // Show Firefox modal on first access if using Firefox
-        if (isFirefox && !firefoxModalShown) {
-          showFirefoxModal();
-        }
-        
-        if (!user) {
-          setupNoUser();
-          document.querySelector(".spinner").remove();
-        } else {
-          document.title = `${user} - Youtube Chat Thing`;
-          const success = await setupChat();
-          if (!success) {
-            setupNoLive();
-            document.querySelector(".spinner").remove();
-          }
-          document.querySelector("iframe").addEventListener("load", () => {
-            document.querySelector(".spinner").remove();
-          });
-        }
-      }
-
-      setup();
-    </script>
-  </body>
 </html>
