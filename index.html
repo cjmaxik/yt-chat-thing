@@ -6,7 +6,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="https://www.youtube.com/s/desktop/711fd789/img/logos/favicon_32x32.png" sizes="32x32">
     <title>Youtube Live Chat Redirect</title>
-    <link rel="stylesheet" href="style.css">
+
+    <meta http-equiv="dns-prefetch" href="https://www.youtube.com">
+    <meta http-equiv="dns-prefetch" href="https://corsproxy.io">
+    <meta http-equiv="dns-prefetch" href="https://api.codetabs.com">
+    <meta http-equiv="dns-prefetch" href="https://api.allorigins.win">
+
+    <style>
+        :root {
+            --theme-bg: #f0f0f0;
+            --theme-bg-foreground: #0f0f0f;
+            --theme-overlay: rgba(255, 255, 255, 0.7);
+            --theme-modal-bg: #e0e0e0;
+            --theme-modal-border: #c0c0c0;
+            --theme-accent: #cc0000;
+        }
+
+        html,
+        body {
+            width: 100dvw;
+            height: 100dvh;
+            overflow: hidden;
+            position: relative;
+            background-color: var(--theme-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .text {
+            font-family: sans-serif;
+            color: var(--theme-bg-foreground);
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 5px solid var(--theme-bg-foreground);
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+            position: fixed;
+        }
+
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -20,7 +74,112 @@
         <h1 class="text">No Live Found</h1>
     </template>
 
-    <script src="index.js"></script>
+    <template id="redirect-template">
+        <h1 class="text">Redirecting now...</h1>
+    </template>
+
+    <script>
+        /**
+         * Original script by Gabriel Porto
+         * @link https://github.com/gsporto/yt-chat-thing
+         */
+
+        const hostname = window.location.hostname
+        const user = window.location.pathname.split("/")[1]
+        const proxies = [
+            "https://corsproxy.io/?",
+            "https://api.codetabs.com/v1/proxy/?quest=",
+            "https://api.allorigins.win/get?url=",
+        ]
+
+        /**
+         * Get the live ID of the user
+         * @param {string} handle - The YouTube handle of the user
+         * @param {number} index - The index of the proxy to use
+         * @return {Promise<string|null>} - The live ID of the user (or null if not found)
+         */
+        const getLiveId = async (handle, index = 0) => {
+            try {
+                if (index >= proxies.length) return null
+                const response = await fetch(
+                    `${proxies[index]}${encodeURIComponent(
+                        `https://www.youtube.com/${handle}/live`
+                    )}`
+                )
+
+                const contentType = response.headers.get("content-type")
+                let html
+
+                if (contentType && contentType.includes("application/json")) {
+                    const json = await response.json()
+                    html = json.contents
+                } else {
+                    html = await response.text()
+                }
+
+                const parser = new DOMParser()
+                const doc = parser.parseFromString(html, "text/html")
+
+                const linkElement = doc.querySelector('link[rel="canonical"]')
+                const url = linkElement.getAttribute("href")
+                const videoIdMatch = url.match(/v=([^&]+)/)
+
+                if (!videoIdMatch?.[1]) {
+                    throw new Error(`No video ID found for ${handle}`)
+                }
+
+                return videoIdMatch[1]
+            } catch (error) {
+                return getLiveId(handle, index + 1)
+            }
+        }
+
+        /**
+         * Setup the chat iframe
+         * @param {string} user - The YouTube handle of the user
+         */
+        const setupChat = async () => {
+            const liveId = await getLiveId(user)
+            if (!liveId) return false
+
+            const url = `https://www.youtube.com/live_chat?v=${liveId}&is_popout=1`
+            window.location.href = url
+
+            return true
+        }
+
+        /**
+         * Display a message to the user
+         * @param {string} templateName - The name of the template to use
+         */
+        const userMessage = (templateName) => {
+            const template = document.getElementById(templateName)
+            const templateContent = template.content.cloneNode(true)
+            document.body.appendChild(templateContent)
+
+            document.querySelector(".spinner").remove()
+        }
+
+        /**
+         * Main function
+         */
+        const main = async () => {
+            if (!user) {
+                userMessage("no-user-template")
+                return
+            }
+
+            const success = await setupChat()
+            if (!success) {
+                userMessage("no-live-template")
+                return
+            }
+
+            userMessage("redirect-template")
+        }
+
+        main()
+    </script>
 </body>
 
 </html>
