@@ -88,6 +88,7 @@
 
         const hostname = window.location.hostname
         const user = window.location.pathname.split("/")[1]
+        const videoUrl = new URLSearchParams(window.location.search).get('url')
         const proxies = [
             "https://corsproxy.io/?",
             "https://api.codetabs.com/v1/proxy/?quest=",
@@ -144,6 +145,10 @@
             const liveId = await getLiveId(user)
             if (!liveId) return false
 
+            return redirectToChat(liveId)
+        }
+
+        const redirectToChat = (liveId) => {
             const url = `https://www.youtube.com/live_chat?v=${liveId}&is_popout=1`
             window.location.href = url
 
@@ -166,6 +171,18 @@
          * Main function
          */
         const main = async () => {
+            if (videoUrl) {
+                const url = new URL(videoUrl)
+                const videoId = url.searchParams.get("v")
+                if (videoId) {
+                    redirectToChat(videoId)
+                    userMessage("redirect-template")
+                } else {
+                    userMessage("no-live-template")
+                }
+                return
+            }
+
             if (!user) {
                 userMessage("no-user-template")
                 return
